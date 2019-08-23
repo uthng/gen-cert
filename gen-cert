@@ -35,12 +35,12 @@ gen_cert_ca() {
 
 gen_cert_server() {
     echo "Generating server certificates..."
-    ${CFSSL} gencert -config=${CA_CONFIG} -ca=${CA_CERT} -ca-key=${CA_KEY} ${SERVER_CONFIG} | cfssljson -bare ${SERVER_NAME}
+    ${CFSSL} gencert -config=${CA_CONFIG} -ca=${CA_CERT} -ca-key=${CA_KEY} -profile=${SERVER_PROFILE} ${SERVER_CONFIG} | cfssljson -bare ${SERVER_NAME}
 }
 
 gen_cert_client() {
     echo "Generating client certificates..."
-    ${CFSSL} gencert -config=${CA_CONFIG} -ca=${CA_CERT} -ca-key=${CA_KEY} ${CLIENT_CONFIG} | cfssljson -bare ${CLIENT_NAME}
+    ${CFSSL} gencert -config=${CA_CONFIG} -ca=${CA_CERT} -ca-key=${CA_KEY} -profile=${CLIENT_PROFILE} ${CLIENT_CONFIG} | cfssljson -bare ${CLIENT_NAME}
 }
 
 gen_all() {
@@ -56,15 +56,17 @@ USAGE: gen-cert [options]
 DESCRIPTION: Utility to generate different self-signed certificates: CA, server or peer and client using CFSSL.
 OPTIONS:
     -t, --type <ca,server,client,all>   : generate the specified certificate type. If the options corresponding to each type are not specified, it will use the default ones. Mandatory. Default: all.
-    --ca-name <name>                    : name for generated CA certificates. Default: ca.
-    --ca-csr-config <path>              : specify CA CSR config file. Default: ca-csr.json.
-    --ca-config <path>                  : specify CA config file. Optional. Default: ca.json
-    --ca-key <path>                     : specify the existing CA key. Default: ca-key.pem
-    --ca-cert <path>                    : specify the existing CA certificate. Default: ca.pem
-    --server-name <name>                : name for generated server certificates. Default: server.
-    --server-config <path               : specify server config file. Default: server.json
-    --client-name <name>                : name for generated client certificates. Default: client.
+    --ca-name <name>                    : name for generated CA certificates. Optional. Default: ca.
+    --ca-csr-config <path>              : specify CA CSR config file. Optional. Default: ca-csr.json.
+    --ca-config <path>                  : specify CA config file. Optional.
+    --ca-key <path>                     : specify the existing CA key. Optional. Default: ca-key.pem
+    --ca-cert <path>                    : specify the existing CA certificate. Optional. Default: ca.pem
+    --server-name <name>                : name for generated server/peer certificates. Optional. Default: server.
+    --server-config <path>              : specify server/peer config file. Optional. Default: server.json
+    --server-profile <profile>          : profile defined in ca.json to use for server/peer. Optional.
+    --client-name <name>                : name for generated client certificates. Optional. Default: client.
     --client-config <path               : specify client config file. Default: client.json
+    --client-profile <profile>          : profile defined in ca.json to use for client. Optional.
     -h,--help                           : show this message
 EOF
 }
@@ -91,8 +93,10 @@ main() {
             --ca-cert) CA_CERT="$2" ; shift 2 ;;
             --server-name) SERVER_NAME="$2" ; shift 2 ;;
             --server-config) SERVER_CONFIG="$2" ; shift 2 ;;
+            --server-profile) SERVER_PROFILE="$2" ; shift 2 ;;
             --client-name) CLIENT_NAME="$2" ; shift 2 ;;
             --client-config) CLIENT_CONFIG="$2" ; shift 2 ;;
+            --client-profile) CLIENT_PROFILE="$2" ; shift 2 ;;
             -h | --help) usage ; exit 0 ;;
             \?) echo "Error: invalid argument !" ; usage ; exit 1 ;;
             --) shift ; break ;;

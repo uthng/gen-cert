@@ -44,7 +44,7 @@ $ gen-cert -t ca --ca-name CA --ca-csr-config ./example/ca-csr.json
 
 **Generate server certificate**
 ```
-$ gen-cert -t server --server-name SERVER --ca-config ./example/ca.json --ca-key CA-key.pem --ca-cert CA.pem --server-config ./example/server.json
+$ DEBUG=1 gen-cert -t server --server-name SERVER --ca-config ./example/ca.json --ca-key CA-key.pem --ca-cert CA.pem --server-config ./example/server.json --server-profile server
 ```
 
 **Generate client certificate**
