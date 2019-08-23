@@ -1,0 +1,128 @@
+    #!/usr/bin/env bash
+#
+# gen-cert(1) is a utility to generate self-signed certificates using cfssl: ca, server, client
+
+# Copyright 2019 Thanh NGUYEN <u.nguyenthanh@gmail.com>.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+[[ -n $DEBUG ]] && set -x
+
+#set -eou pipefail
+IFS=$'\n\t'
+
+SELF_CMD="$0"
+
+exit_err() {
+   echo >&2 "${1}"
+   exit 1
+}
+
+gen_cert_ca() {
+    echo "Generating CA certificates..."
+    ${CFSSL} gencert -initca ${CA_CSR_CONFIG} | cfssljson -bare ${CA_NAME} -
+}
+
+gen_cert_server() {
+    echo "Generating server certificates..."
+    ${CFSSL} gencert -config=${CA_CONFIG} -ca=${CA_CERT} -ca-key=${CA_KEY} ${SERVER_CONFIG} | cfssljson -bare ${SERVER_NAME}
+}
+
+gen_cert_client() {
+    echo "Generating client certificates..."
+    ${CFSSL} gencert -config=${CA_CONFIG} -ca=${CA_CERT} -ca-key=${CA_KEY} ${CLIENT_CONFIG} | cfssljson -bare ${CLIENT_NAME}
+}
+
+gen_all() {
+    echo "Generating all kind of certificates..."
+    gen_cert_ca
+    gen_cert_server
+    gen_cert_client
+}
+
+usage() {
+  cat <<"EOF"
+USAGE: gen-cert [options]
+DESCRIPTION: Utility to generate different certificates: CA, server or peer and client using CFSSL.
+OPTIONS:
+    -a, --all                           : generate all certificates: CA, server, client.
+    --type <ca,server,client,all>       : generate the specified certificate type. If the options corresponding to each type are not specified, it will use the default ones. Default: all.
+    --ca-name <name>                    : name for generated CA certificates. Default: ca.
+    --ca-csr-config <path>              : specify CA CSR config file. Default: ca-csr.json.
+    --ca-config <path>                  : specify CA config file. Optional. Default: ca.json
+    --ca-key <path>                     : specify the existing CA key. Default: ca-key.pem
+    --ca-cert <path>                    : specify the existing CA certificate. Default: ca.pem
+    --server-name <name>                : name for generated server certificates. Default: server.
+    --server-config <path               : specify server config file. Default: server.json
+    --client-name <name>                : name for generated client certificates. Default: client.
+    --client-config <path               : specify client config file. Default: client.json
+    -h,--help                           : show this message
+EOF
+}
+
+main() {
+    # Check if cfssl is installed
+    if hash cfssl 2>/dev/null; then
+        CFSSL=cfssl
+    else
+        echo >&2 "Error: cfssl is not installed"
+        exit 1
+    fi
+
+    # Trick: add -- at the end to stop below white loop in time when it reach --
+    eval set -- "$@ --"
+
+    while true ; do
+        case "$1" in
+            --type) TYPE="$2" ; shift 2 ;;
+            --ca-name) CA_NAME="$2" ; shift 2 ;;
+            --ca-csr-config) CA_CSR_CONFIG="$2" ; shift 2 ;;
+            --ca-config) CA_CONFIG="$2" ; shift 2 ;;
+            --ca-key) CA_KEY="$2" ; shift 2 ;;
+            --ca-cert) CA_CERT="$2" ; shift 2 ;;
+            --server-name) SERVER_NAME="$2" ; shift 2 ;;
+            --server-config) SERVER_CONFIG="$2" ; shift 2 ;;
+            --client-name) CLIENT_NAME="$2" ; shift 2 ;;
+            --client-config) CLIENT_CONFIG="$2" ; shift 2 ;;
+            -a | --all) TYPE="all" ; shift 2 ;;
+            -h | --help) echo "toto" ; usage ; exit 0 ;;
+            \?) echo "Error: invalid argument !" ; usage ; exit 1 ;;
+            --) shift ; break ;;
+            *) echo "Error: error argument !" ; usage ; exit 1 ;;
+        esac
+    done
+
+    [[ "${TYPE}" != "" ]] || exit_err "Error: option --type must be specified !"
+
+
+    CA_NAME=${CA_NAME:-ca}
+    #CA_CONFIG=${CA_CONFIG:-ca.json}
+    CA_CSR_CONFIG=${CA_CSR_CONFIG:-ca-csr.json}
+    CA_KEY=${CA_KEY:-ca-key.pem}
+    CA_CERT=${CA_CERT:-ca.pem}
+    SERVER_NAME=${SERVER_NAME:-server}
+    SERVER_CONFIG=${SERVER_CONFIG:-server.json}
+    CLIENT_NAME=${CLIENT_NAME:-client}
+    CLIENT_CONFIG=${CLIENT_CONFIG:-client.json}
+
+    case "$TYPE" in
+        all) gen_all ;;
+        ca) gen_cert_ca ;;
+        server) gen_cert_server ;;
+        client) gen_cert_client ;;
+        \?) echo "Error: invalid argument !" ; exit 1 ;;
+        *) echo "Error: error argument !" ; usage ; exit 1 ;;
+    esac
+}
+
+main "$@"

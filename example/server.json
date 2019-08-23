@@ -1,0 +1,19 @@
+{
+    "CN": "server",
+    "hosts": [],
+    "key": {
+        "algo": "rsa",
+        "size": 4096
+    },
+    "names": [
+        {
+            "C": "FR",
+            "L": "ILE DE FRANCE",
+            "O": "My Company Name",
+            "ST": "PARIS",
+            "OU": "IT",
+            "OU": "SRE"
+        }
+    ]
+}
+
