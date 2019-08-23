@@ -53,10 +53,9 @@ gen_all() {
 usage() {
   cat <<"EOF"
 USAGE: gen-cert [options]
-DESCRIPTION: Utility to generate different certificates: CA, server or peer and client using CFSSL.
+DESCRIPTION: Utility to generate different self-signed certificates: CA, server or peer and client using CFSSL.
 OPTIONS:
-    -a, --all                           : generate all certificates: CA, server, client.
-    --type <ca,server,client,all>       : generate the specified certificate type. If the options corresponding to each type are not specified, it will use the default ones. Default: all.
+    -t, --type <ca,server,client,all>   : generate the specified certificate type. If the options corresponding to each type are not specified, it will use the default ones. Mandatory. Default: all.
     --ca-name <name>                    : name for generated CA certificates. Default: ca.
     --ca-csr-config <path>              : specify CA CSR config file. Default: ca-csr.json.
     --ca-config <path>                  : specify CA config file. Optional. Default: ca.json
@@ -84,7 +83,7 @@ main() {
 
     while true ; do
         case "$1" in
-            --type) TYPE="$2" ; shift 2 ;;
+            -t | --type) TYPE="$2" ; shift 2 ;;
             --ca-name) CA_NAME="$2" ; shift 2 ;;
             --ca-csr-config) CA_CSR_CONFIG="$2" ; shift 2 ;;
             --ca-config) CA_CONFIG="$2" ; shift 2 ;;
@@ -94,8 +93,7 @@ main() {
             --server-config) SERVER_CONFIG="$2" ; shift 2 ;;
             --client-name) CLIENT_NAME="$2" ; shift 2 ;;
             --client-config) CLIENT_CONFIG="$2" ; shift 2 ;;
-            -a | --all) TYPE="all" ; shift 2 ;;
-            -h | --help) echo "toto" ; usage ; exit 0 ;;
+            -h | --help) usage ; exit 0 ;;
             \?) echo "Error: invalid argument !" ; usage ; exit 1 ;;
             --) shift ; break ;;
             *) echo "Error: error argument !" ; usage ; exit 1 ;;
