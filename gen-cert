@@ -1,4 +1,4 @@
-    #!/usr/bin/env bash
+#!/usr/bin/env bash
 #
 # gen-cert(1) is a utility to generate self-signed certificates using cfssl: ca, server, client
 
