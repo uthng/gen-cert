@@ -31,16 +31,19 @@ exit_err() {
 gen_cert_ca() {
     echo "Generating CA certificates..."
     ${CFSSL} gencert -initca ${CA_CSR_CONFIG} | cfssljson -bare ${CA_NAME} -
+    mv ${CA_NAME}-key.pem ${CA_NAME}.key
 }
 
 gen_cert_server() {
     echo "Generating server certificates..."
     ${CFSSL} gencert -config=${CA_CONFIG} -ca=${CA_CERT} -ca-key=${CA_KEY} -profile=${SERVER_PROFILE} ${SERVER_CONFIG} | cfssljson -bare ${SERVER_NAME}
+    mv ${SERVER_NAME}-key.pem ${SERVER_NAME}.key
 }
 
 gen_cert_client() {
     echo "Generating client certificates..."
     ${CFSSL} gencert -config=${CA_CONFIG} -ca=${CA_CERT} -ca-key=${CA_KEY} -profile=${CLIENT_PROFILE} ${CLIENT_CONFIG} | cfssljson -bare ${CLIENT_NAME}
+    mv ${CLIENT_NAME}-key.pem ${CLIENT_NAME}.key
 }
 
 gen_all() {
@@ -110,7 +113,7 @@ main() {
     CA_NAME=${CA_NAME:-ca}
     #CA_CONFIG=${CA_CONFIG:-ca.json}
     CA_CSR_CONFIG=${CA_CSR_CONFIG:-ca-csr.json}
-    CA_KEY=${CA_KEY:-ca-key.pem}
+    CA_KEY=${CA_KEY:-ca.key}
     CA_CERT=${CA_CERT:-ca.pem}
     SERVER_NAME=${SERVER_NAME:-server}
     SERVER_CONFIG=${SERVER_CONFIG:-server.json}
